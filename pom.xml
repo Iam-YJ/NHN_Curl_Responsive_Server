@@ -19,7 +19,7 @@
             <artifactId>maven-jar-plugin</artifactId>
             <version>3.2.2</version>
         </dependency>
-        
+
         <!-- JSON SIMPLE -->
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>

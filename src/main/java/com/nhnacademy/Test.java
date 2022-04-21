@@ -10,6 +10,7 @@ import java.net.Socket;
 public class Test {
     public static void main(String[] args) {
         ServerSocket serverSocket = null;
+        JsonData jsonData = new JsonData();
 
         try {
             serverSocket = new ServerSocket(80);
@@ -28,6 +29,7 @@ public class Test {
                 int readByteCount = is.read(bytes); // blocking
                 message = new String(bytes, 0, readByteCount, "UTF-8");
                 System.out.println("[데이터 받기 성공] " + message);
+                jsonData.parseJson(message);
 
                 OutputStream os = socket.getOutputStream();
                 message = "Hello Client";
@@ -37,22 +39,7 @@ public class Test {
                 System.out.println("[데이터 보내기 성공]");
 
 
-                //GET / HTTP/1.1
-                //Host: 127.0.0.1
-                //User-Agent: curl/7.79.1
-                //Accept: */*
 
-
-                // {
-                //  "args": {},
-                //  "headers": {
-                //    "Accept": "*/*",
-                //    "Host": "test-vm.com",
-                //    "User-Agent": "curl/7.64.1"
-                //  },
-                //  "origin": "103.243.200.16",
-                //  "url": "http://test-vm.com/get"
-                //}
 
                 is.close(); os.close(); socket.close();
             }
