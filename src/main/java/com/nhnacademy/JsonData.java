@@ -2,8 +2,6 @@ package com.nhnacademy;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import org.json.simple.JSONObject;
 
 public class JsonData {
@@ -42,7 +40,7 @@ public class JsonData {
         return result;
     }
 
-    public String parseJson(String message) {
+    public JSONObject parseJson(String message) {
         JSONObject jsonObject = new JSONObject();
 
         message = message.replaceAll("\n", "");
@@ -51,7 +49,7 @@ public class JsonData {
         if (method.contains("?")) {
             jsonObject.put("args", parseArg(method));
         } else {
-            jsonObject.put("args", new JSONObject() + "\\r\\n");
+            jsonObject.put("args", new JSONObject());
         }
 
         jsonObject.put("headers", parseHost(message));
@@ -60,9 +58,8 @@ public class JsonData {
         jsonObject.put("url", parseUrl(message));
 
         String ld = jsonObject.toJSONString();
-        System.out.println(ld);
 
-        return jsonObject.toJSONString();
+        return jsonObject;
     }
 
     public JSONObject parseArg(String method) {
@@ -79,7 +76,7 @@ public class JsonData {
 
     public JSONObject parseHost(String message) {
         JSONObject header = new JSONObject();
-        String host = message.split("Host:")[1].split("User-Agent")[0];
+        String host = message.split("Host:")[1].split("User-Agent")[0].split("\r")[0];
 
         header.put("Accept", "*/*");
         header.put("Host", host);
@@ -89,7 +86,7 @@ public class JsonData {
     }
 
     public String parseUrl(String message) {
-        String url = message.split("Host:")[1].split("User-Agent")[0];
+        String url = message.split("Host:")[1].split("User-Agent")[0].split("\r")[0];
         url = "http://" + url;
         return url;
     }
