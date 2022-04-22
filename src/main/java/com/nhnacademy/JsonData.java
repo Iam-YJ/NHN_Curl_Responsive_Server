@@ -11,22 +11,11 @@ public class JsonData {
     private final InetSocketAddress isa;
     private String message;
 
-
     public JsonData(InetSocketAddress isa, String message) {
         this.isa = isa;
         this.message = message.replace("\r\n", "");
     }
-
-
-    //POST /post HTTP/1.1
-    //Host: 127.0.0.1
-    //User-Agent: curl/7.79.1
-    //Accept: */*
-    //Content-Length: 34
-    //Content-Type: application/x-www-form-urlencoded
-    //
-    //{ "msg1": "hello","msg2":"world" }
-
+    
     public String parseContentTypeFromArgs(String message) {
         return message.split("Content-Type: ")[1].split("\\{")[0];
     }
@@ -34,7 +23,6 @@ public class JsonData {
     public String parseDataFromArgs(String message) {
         return "{" + message.split("\\{")[1];
     }
-
 
     public String date() {
         ZonedDateTime now = ZonedDateTime.now();
@@ -47,9 +35,8 @@ public class JsonData {
 
     public String responseBody(String message) {
         String url = message.replace("\r\n", "");
-
-        // FIXME: 200 400 300 이것들도 조건문 하기
-        // FIXME: FAIL 떴을 때 예외처리로 넘어가서 서버 끄는 식으로 ..
+        // FIXME: 3. 200 400 300 이것들도 조건문 하기
+        // FIXME: 4. FAIL 떴을 때 예외처리로 넘어가서 서버 끄는 식으로 ..
         String result = "";
         result += "HTTP/1.1 200 OK\n";
         result += date() + "\n";
@@ -85,7 +72,7 @@ public class JsonData {
             }
         }
 
-        jsonObject.put("headers", parseHost(message));
+        jsonObject.put("headers", parseHeader(message));
         if (message.contains("POST ")) {
             jsonObject.put("json", parseData(message));
         }
@@ -111,8 +98,7 @@ public class JsonData {
         }
         return jsonObject;
     }
-
-
+    
     public JSONObject parseArg(String method) {
         JSONObject args = new JSONObject();
         String[] url = method.split("get\\?")[1].split(" HTTP")[0].split("&");
@@ -125,7 +111,15 @@ public class JsonData {
         return args;
     }
 
-    public JSONObject parseHost(String message) {
+    //> POST /post HTTP/1.1
+    //> Host: 127.0.0.1
+    //> User-Agent: curl/7.79.1
+    //> Accept: */*
+    //> Content-Length: 238
+    //> Content-Type: multipart/form-data; boundary=------------------------b8b812dd1e32dc4c
+
+
+    public JSONObject parseHeader(String message) {
         JSONObject header = new JSONObject();
 
         String host = message.split("Host:")[1].split("User-Agent")[0].split("\r")[0];
