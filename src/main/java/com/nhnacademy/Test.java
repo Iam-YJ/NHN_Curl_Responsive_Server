@@ -7,12 +7,12 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import org.json.simple.JSONObject;
 
 public class Test {
     public static void main(String[] args) {
+        System.out.println(args);
         ServerSocket serverSocket = null;
-        JsonData jsonData = new JsonData();
+        JsonData jsonData = new JsonData(args);
         ObjectMapper mapper = new ObjectMapper();
 
         try {
