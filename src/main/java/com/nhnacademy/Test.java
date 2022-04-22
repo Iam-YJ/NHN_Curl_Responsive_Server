@@ -22,20 +22,20 @@ public class Test {
                 Socket socket = serverSocket.accept();
                 InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
 
-                byte[] bytes = null;
-                String message = null;
+                byte[] bytes = new byte[10000];
                 InputStream is = socket.getInputStream();
-                bytes = new byte[100];
                 int readByteCount = is.read(bytes); // blocking
-                message = new String(bytes, 0, readByteCount, "UTF-8");
+                String message = new String(bytes, 0, readByteCount, "UTF-8");
 
                 String responseBody = jsonData.responseBody(message);
                 String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonData.parseJson(message));
 
-                // FIXME: client로 메세지 보내는 것 추가해야함
                 OutputStream os = socket.getOutputStream();
                 bytes = responseBody.getBytes("UTF-8");
                 os.write(bytes);
+                bytes = jsonString.getBytes("UTF-8");
+                os.write(bytes);
+
                 os.flush();
                 System.out.println(responseBody);
                 System.out.println(jsonString);
