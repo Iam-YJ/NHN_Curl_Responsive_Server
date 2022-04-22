@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import org.json.simple.JSONObject;
 
 public class Test {
     public static void main(String[] args) {
@@ -23,22 +25,23 @@ public class Test {
 
                 byte[] bytes = null;
                 String message = null;
-
                 InputStream is = socket.getInputStream();
                 bytes = new byte[100];
                 int readByteCount = is.read(bytes); // blocking
                 message = new String(bytes, 0, readByteCount, "UTF-8");
+
                 System.out.println("[데이터 받기 성공] " + message);
-                jsonData.parseJson(message);
+                String body = jsonData.body(message);
+                String jsonObject = jsonData.parseJson(message);
 
                 OutputStream os = socket.getOutputStream();
-                message = "Hello Client";
-                bytes = message.getBytes("UTF-8");
+                bytes = body.getBytes("UTF-8");
+                os.write(bytes);
+                bytes = jsonObject.getBytes("UTF-8");
                 os.write(bytes);
                 os.flush();
                 System.out.println("[데이터 보내기 성공]");
-
-
+                System.out.println(jsonObject);
 
 
                 is.close(); os.close(); socket.close();
