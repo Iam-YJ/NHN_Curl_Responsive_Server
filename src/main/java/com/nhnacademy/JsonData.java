@@ -4,20 +4,33 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import org.json.simple.JSONObject;
 
+// FIXME 1. POST - 추가한 JSON 데이터 거꾸로 나옴
+// FIXME 2. GET - 추가한 데이터 거꾸로 나옴
 public class JsonData {
-    private final String[] args;
+    private String message;
 
-    public JsonData(String[] args) {
-        this.args = args;
+    public JsonData(String message) {
+        this.message = message.replace("\r\n", "");
     }
 
-    public String parseContentTypeFromArgs() {
-        return args[3].replace("\'", "");
+    //POST /post HTTP/1.1
+    //Host: 127.0.0.1
+    //User-Agent: curl/7.79.1
+    //Accept: */*
+    //Content-Length: 34
+    //Content-Type: application/x-www-form-urlencoded
+    //
+    //{ "msg1": "hello","msg2":"world" }
+
+    public String parseContentTypeFromArgs(String message) {
+        return message.split("Content-Type: ")[1].split("\\{")[0];
     }
 
-    public String parseDataFromArgs() {
-        return args[5].replace("\'", "");
+    public String parseDataFromArgs(String message) {
+        return "{" + message.split("\\{")[1];
     }
+
+
     public String date() {
         ZonedDateTime now = ZonedDateTime.now();
         return DateTimeFormatter.RFC_1123_DATE_TIME.format(now);
@@ -48,44 +61,49 @@ public class JsonData {
     public JSONObject parseJson(String message) {
         JSONObject jsonObject = new JSONObject();
 
-        message = message.replaceAll("\n", "");
-        String method = message.split(" HTTP")[0];
-        String request = message.split("HTTP/")[1];
+        message = message.replaceAll("\r", "").replaceAll("\n", "");
 
-        System.out.println("method" + message);
-        if (method.equals("POST /post")) {
-        } else if (method.equals("GET /get")) {
+        if (message.contains("GET ")) {
+            String request = message.split("GET \\/")[1];
+            if (message.split("GET \\/")[1].contains("?")) {
+                jsonObject.put("args", parseArg(request));
+            } else {
+                jsonObject.put("args", new JSONObject());
+            }
 
-        }
-
-        if (request.contains("?")) {
-            jsonObject.put("args", parseArg(request));
-        } else {
-            jsonObject.put("args", new JSONObject());
+        } else if (message.contains("POST ")) {
+            String request = message.split("Content-Type: ")[1];
+            if (message.contains("\\{")) {
+                jsonObject.put("args", parseArg(request));
+            } else {
+                jsonObject.put("args", new JSONObject());
+            }
         }
 
         jsonObject.put("headers", parseHost(message));
         // FIXME : ORIGIN IP로 바꿔야 함
-        jsonObject.put("json", parseData());
+        if (message.contains("POST ")) {
+            jsonObject.put("json", parseData(message));
+        }
         jsonObject.put("origin", "127.0.0.1");
         jsonObject.put("url", parseUrl(message));
 
         return jsonObject;
     }
-    public String parseContentType() {
-        String commandLine;
-        commandLine = parseContentTypeFromArgs().split("H \'")[1].split("\'")[0].split("Content-Type: ")[1];
-        return commandLine;
+
+    public String parseContentType(String message) {
+        return parseContentTypeFromArgs(message);
     }
 
-    public JSONObject parseData() {
-        String[] rawData = parseDataFromArgs().replace("\\{","")
-            .replace("\\}","").split(",");
+    public JSONObject parseData(String message) {
+        String[] rawData =
+            parseDataFromArgs(message).split("\\{ ")[1].split("\\ }")[0].replace("\"", "")
+                .split(",");
         JSONObject jsonObject = new JSONObject();
 
-        for(int i=0; i<rawData.length; i++){
-            jsonObject.put(rawData[i].split(":")[0].replace("\"","")
-                , rawData[i].split(":")[1].replace("\"",""));
+        for (int i = 0; i < rawData.length; i++) {
+            jsonObject.put(rawData[i].split(":")[0].replace("\"", "")
+                , rawData[i].split(":")[1].replace("\"", ""));
         }
         return jsonObject;
     }
@@ -105,14 +123,32 @@ public class JsonData {
 
     public JSONObject parseHost(String message) {
         JSONObject header = new JSONObject();
+
         String host = message.split("Host:")[1].split("User-Agent")[0].split("\r")[0];
+        if (message.contains("GET ")) {
+            //   "headers": {
+            //    "Accept": "*/*",
+            //    "Host": "test-vm.com",
+            //    "User-Agent": "curl/7.64.1"
+            //  },
+            header.put("Accept", "*/*");
+            header.put("Host", host);
+            header.put("User-Agent", "curl/7.64.1");
 
-        header.put("Accept", "*/*");
-        header.put("Host", host);
-        header.put("User-Agent", "curl/7.64.1");
-        header.put("Content-Type", parseContentType());
-        header.put("Content-Length", size(parseDataFromArgs()));
-
+        } else if (message.contains("POST ")) {
+            //  "headers": {
+            //    "Accept": "*/*",
+            //    "Content-Length": "36",
+            //    "Content-Type": "application/json",
+            //    "Host": "test-vm.com",
+            //    "User-Agent": "curl/7.64.1"
+            //  },
+            header.put("Accept", "*/*");
+            header.put("Host", host);
+            header.put("User-Agent", "curl/7.64.1");
+            header.put("Content-Type", parseContentType(message));
+            header.put("Content-Length", size(parseDataFromArgs(message)));
+        }
         return header;
     }
 

@@ -10,9 +10,8 @@ import java.net.Socket;
 
 public class Test {
     public static void main(String[] args) {
-        System.out.println(args);
         ServerSocket serverSocket = null;
-        JsonData jsonData = new JsonData(args);
+        JsonData jsonData = null;
         ObjectMapper mapper = new ObjectMapper();
 
         try {
@@ -27,6 +26,7 @@ public class Test {
                 int readByteCount = is.read(bytes); // blocking
                 String message = new String(bytes, 0, readByteCount, "UTF-8");
 
+                jsonData = new JsonData(message);
                 String responseBody = jsonData.responseBody(message);
                 String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonData.parseJson(message));
 
