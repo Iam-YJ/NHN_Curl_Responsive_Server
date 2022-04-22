@@ -1,8 +1,10 @@
 package com.nhnacademy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -20,27 +22,31 @@ public class Test {
                 InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
                 String jsonStr = "";
                 byte[] bytes = new byte[4096];
-                InputStream is = socket.getInputStream();
-                int readByteCount = is.read(bytes); // blocking
-                String message = new String(bytes, StandardCharsets.UTF_8);
-                System.out.println(message);
-                jsonData = new JsonData(isa , message);
-                String responseBody = jsonData.responseBody(message);
-                String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonData.parseJson(message));
+                try(InputStream is = socket.getInputStream()) {
+                    int readByteCount = is.read(bytes); // blocking
+                    /* String message = new String(bytes, StandardCharsets.UTF_8); */
+                    try (BufferedReader bf = new BufferedReader(new InputStreamReader(is))) {
+                        String line = null;
+                        while ((line = bf.readLine()) != null) {
+                            jsonStr += line;
+                        }
+                        jsonData = new JsonData(isa, jsonStr);
+                        String responseBody = jsonData.responseBody(jsonStr);
+                        String jsonString = mapper.writerWithDefaultPrettyPrinter()
+                            .writeValueAsString(jsonData.parseJson(jsonStr));
 
-                OutputStream os = socket.getOutputStream();
-                bytes = responseBody.getBytes("UTF-8");
-                os.write(bytes);
-                bytes = jsonString.getBytes("UTF-8");
-                os.write(bytes);
-                os.flush();
-
-                is.close();
-                os.close();
-                socket.close();
+                        try (OutputStream os = socket.getOutputStream()) {
+                            bytes = responseBody.getBytes(StandardCharsets.UTF_8);
+                            os.write(bytes);
+                            bytes = jsonString.getBytes(StandardCharsets.UTF_8);
+                            os.write(bytes);
+                            os.flush();
+                        }
+                    }
+                }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e);
         }
     }
 }
