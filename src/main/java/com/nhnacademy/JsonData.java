@@ -45,7 +45,6 @@ public class JsonData {
     public String parseJson(String message) {
         JSONObject jsonObject = new JSONObject();
 
-
         message = message.replaceAll("\n", "");
         String method = message.split("GET /")[1];
 
@@ -55,11 +54,11 @@ public class JsonData {
             jsonObject.put("args", new JSONObject() + "\\r\\n");
         }
 
-        jsonObject.put("args", new JSONObject());
         jsonObject.put("headers", parseHost(message));
         // FIXME : ORIGIN IP로 바꿔야 함
         jsonObject.put("origin", "127.0.0.1");
         jsonObject.put("url", parseUrl(message));
+
         String ld = jsonObject.toJSONString();
         System.out.println(ld);
 
