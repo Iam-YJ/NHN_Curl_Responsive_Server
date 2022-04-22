@@ -24,16 +24,18 @@ public class Test {
                 byte[] bytes = new byte[4096];
                 try(InputStream is = socket.getInputStream()) {
                     int readByteCount = is.read(bytes); // blocking
-                    /* String message = new String(bytes, StandardCharsets.UTF_8); */
+                    String message = new String(bytes, StandardCharsets.UTF_8);
+                    System.out.println("message : " + message);
                     try (BufferedReader bf = new BufferedReader(new InputStreamReader(is))) {
                         String line = null;
                         while ((line = bf.readLine()) != null) {
+                            System.out.println(bf.readLine());
                             jsonStr += line;
                         }
-                        jsonData = new JsonData(isa, jsonStr);
-                        String responseBody = jsonData.responseBody(jsonStr);
+                        jsonData = new JsonData(isa, message);
+                        String responseBody = jsonData.responseBody(message);
                         String jsonString = mapper.writerWithDefaultPrettyPrinter()
-                            .writeValueAsString(jsonData.parseJson(jsonStr));
+                            .writeValueAsString(jsonData.parseJson(message));
 
                         try (OutputStream os = socket.getOutputStream()) {
                             bytes = responseBody.getBytes(StandardCharsets.UTF_8);
