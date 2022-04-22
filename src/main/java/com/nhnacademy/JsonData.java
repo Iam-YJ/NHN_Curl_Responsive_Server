@@ -14,28 +14,20 @@ public class JsonData {
         return str.length();
     }
 
-    public String body(String message){
+    public String responseBody(String message){
         String url = message.replace("\r\n","");
 
+        // FIXME: 200 400 300 이것들도 조건문 하기
+        // FIXME: FAIL 떴을 때 예외처리로 넘어가서 서버 끄는 식으로 ..
         String result ="";
-        result += "{\n";
-        result += "\"args\": {},\n";
-        result += "  \"headers\": {\n";
-        result += " \"Accept\": \"*/*\",";
-        result += "\"Host\": \"test-vm.com\",\n";
-        result += "\"User-Agent\": \"curl/7.64.1\"\n";
-        result += " },\n";
-        result += " \"origin\": \"103.243.200.16\",\n";
-        result += " \"url\": \"http://test-vm.com/get\"\n";
-        result += "}\n";
-
-//        splitLine[2] + " 200 OK\n" + "Date: " + server.date() +"\n" + "Content-Type: application/json\n" +
-//            "Content-Length: " + server.size(server.bodyMake(splitLine[1])) + "\n" +
-//            "Connection: keep-alive\n" +
-//            "Server: gunicorn/19.9.0\n" +
-//            "Access-Control-Allow-Origin: *\n" +
-//            "Access-Control-Allow-Credentials: true\n\n" + server.bodyMake(splitLine[1])+"\n";
-
+        result += "HTTP/1.1 200 OK\n";
+        result += date() + "\n";
+        result += "Content-Type: application/json\n";
+        result += "Content-Length: +"+size(url)+"\n";
+        result += "Connection: keep-alive\n";
+        result += "Server: gunicorn/19.9.0\n";
+        result += "Access-Control-Allow-Origin: *\n";
+        result += "Access-Control-Allow-Credentials: true\n";
 
         return result;
     }

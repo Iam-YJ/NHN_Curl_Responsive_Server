@@ -19,10 +19,8 @@ public class Test {
             serverSocket = new ServerSocket(80);
 
             while (true) {
-                System.out.println("[연결 기다림]");
                 Socket socket = serverSocket.accept();
                 InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
-                System.out.println("[연결 수락함] " + isa.getHostName());
 
                 byte[] bytes = null;
                 String message = null;
@@ -31,36 +29,17 @@ public class Test {
                 int readByteCount = is.read(bytes); // blocking
                 message = new String(bytes, 0, readByteCount, "UTF-8");
 
-                System.out.println("[데이터 받기 성공] " + message);
-                String body = jsonData.body(message);
-                JSONObject jsonObject = jsonData.parseJson(message);
+                String responseBody = jsonData.responseBody(message);
                 String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonData.parseJson(message));
 
+                // FIXME: client로 메세지 보내는 것 추가해야함
                 OutputStream os = socket.getOutputStream();
-                bytes = body.getBytes("UTF-8");
+                bytes = responseBody.getBytes("UTF-8");
                 os.write(bytes);
                 os.flush();
+                System.out.println(responseBody);
                 System.out.println(jsonString);
                 System.out.println("[데이터 보내기 성공]");
-
-//                char[] charArr = jsonObject.toCharArray();
-//                for (var i = 0; i < charArr.length; i++) {
-//                    System.out.print(charArr[i]);
-//                    if (charArr[i] == '}' &&
-//                        charArr[i + 1] != ',') {
-//                        System.out.print("\n ");
-//                    }
-//                    if (charArr[i] == '{') {
-//                        if (charArr[i + 1] != ',') {
-//                            if (charArr[i + 1] != '}') {
-//                                System.out.print("\n ");
-//                            }
-//                        }
-//                    }
-//                    if (charArr[i] == ',') {
-//                        System.out.print("\n ");
-//                    }
-//                }
 
                 is.close();
                 os.close();
