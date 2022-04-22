@@ -7,36 +7,7 @@ import java.util.List;
 import org.json.simple.JSONObject;
 
 public class JsonData {
-
-    // curl -v http://test-vm.com/get
-
-    // > GET /ip HTTP/1.1
-    //> Host: test-vm.com
-    //> User-Agent: curl/7.64.1
-    //> Accept: */*
-
-    // {
-    //  "args": {},
-    //  "headers": {
-    //    "Accept": "*/*",
-    //    "Host": "test-vm.com", //!!
-    //    "User-Agent": "curl/7.64.1"
-    //  },
-    //  "origin": "103.243.200.16", // !!
-    //  "url": "http://test-vm.com/get" //!!
-    //}
-
-    // TODO 이거도 하기
-    // < HTTP/1.1 200 OK
-    //< Date: Thu, 21 Apr 2022 02:56:58 GMT
-    //< Content-Type: application/json
-    //< Content-Length: 33
-    //< Connection: keep-alive
-    //< Server: gunicorn/19.9.0
-    //< Access-Control-Allow-Origin: *
-    //< Access-Control-Allow-Credentials: true
-
-    public String date() {
+ 	public String date() {
         ZonedDateTime now = ZonedDateTime.now();
         return DateTimeFormatter.RFC_1123_DATE_TIME.format(now);
     }
@@ -84,6 +55,14 @@ public class JsonData {
             jsonObject.put("args", new JSONObject() + "\\r\\n");
         }
 
+        jsonObject.put("args", new JSONObject());
+        jsonObject.put("headers", parseHost(message));
+        // FIXME : ORIGIN IP로 바꿔야 함
+        jsonObject.put("origin", "127.0.0.1");
+        jsonObject.put("url", parseUrl(message));
+        String ld = jsonObject.toJSONString();
+        System.out.println(ld);
+        return jsonObject.toJSONString();
 
         jsonObject.put("headers", parseHost(message) + "\\r\\n");
         // TODO ORIGIN IP로 바꿔야 함
