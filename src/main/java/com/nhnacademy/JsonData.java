@@ -1,5 +1,6 @@
 package com.nhnacademy;
 
+import java.net.InetSocketAddress;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import org.json.simple.JSONObject;
@@ -7,11 +8,15 @@ import org.json.simple.JSONObject;
 // FIXME 1. POST - 추가한 JSON 데이터 거꾸로 나옴
 // FIXME 2. GET - 추가한 데이터 거꾸로 나옴
 public class JsonData {
+    private final InetSocketAddress isa;
     private String message;
 
-    public JsonData(String message) {
+
+    public JsonData(InetSocketAddress isa, String message) {
+        this.isa = isa;
         this.message = message.replace("\r\n", "");
     }
+
 
     //POST /post HTTP/1.1
     //Host: 127.0.0.1
@@ -81,11 +86,10 @@ public class JsonData {
         }
 
         jsonObject.put("headers", parseHost(message));
-        // FIXME : ORIGIN IP로 바꿔야 함
         if (message.contains("POST ")) {
             jsonObject.put("json", parseData(message));
         }
-        jsonObject.put("origin", "127.0.0.1");
+        jsonObject.put("origin", isa.getHostName());
         jsonObject.put("url", parseUrl(message));
 
         return jsonObject;

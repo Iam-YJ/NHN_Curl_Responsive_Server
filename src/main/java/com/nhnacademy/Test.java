@@ -26,7 +26,7 @@ public class Test {
                 int readByteCount = is.read(bytes); // blocking
                 String message = new String(bytes, 0, readByteCount, "UTF-8");
 
-                jsonData = new JsonData(message);
+                jsonData = new JsonData(isa , message);
                 String responseBody = jsonData.responseBody(message);
                 String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonData.parseJson(message));
 
@@ -35,11 +35,7 @@ public class Test {
                 os.write(bytes);
                 bytes = jsonString.getBytes("UTF-8");
                 os.write(bytes);
-
                 os.flush();
-                System.out.println(responseBody);
-                System.out.println(jsonString);
-                System.out.println("[데이터 보내기 성공]");
 
                 is.close();
                 os.close();
