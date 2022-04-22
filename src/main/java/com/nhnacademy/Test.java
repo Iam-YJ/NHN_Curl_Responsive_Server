@@ -7,25 +7,23 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class Test {
     public static void main(String[] args) {
-        ServerSocket serverSocket = null;
         JsonData jsonData = null;
         ObjectMapper mapper = new ObjectMapper();
-
-        //FIXME TRY-RESOURCE
-        try {
-            serverSocket = new ServerSocket(80);
-
+        
+        try (ServerSocket serverSocket = new ServerSocket(80)){
             while (true) {
                 Socket socket = serverSocket.accept();
                 InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
-
+                String jsonStr = "";
                 byte[] bytes = new byte[4096];
                 InputStream is = socket.getInputStream();
                 int readByteCount = is.read(bytes); // blocking
-                String message = new String(bytes, 0, readByteCount, "UTF-8");
+                String message = new String(bytes, StandardCharsets.UTF_8);
+                System.out.println(message);
                 jsonData = new JsonData(isa , message);
                 String responseBody = jsonData.responseBody(message);
                 String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonData.parseJson(message));
@@ -43,14 +41,6 @@ public class Test {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-        if (!serverSocket.isClosed()) {
-            try {
-                serverSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }
