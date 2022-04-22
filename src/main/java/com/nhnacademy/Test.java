@@ -29,14 +29,30 @@ public class Test {
                 int readByteCount = is.read(bytes); // blocking
                 message = new String(bytes, 0, readByteCount, "UTF-8");
                 System.out.println("[데이터 받기 성공] " + message);
-                jsonData.parseJson(message);
-
+                String jsonObject = jsonData.parseJson(message) + "  ";
                 OutputStream os = socket.getOutputStream();
-                message = "Hello Client";
-                bytes = message.getBytes("UTF-8");
+                bytes = jsonObject.getBytes("UTF-8");
                 os.write(bytes);
                 os.flush();
                 System.out.println("[데이터 보내기 성공]");
+
+                char[] charArr = jsonObject.toCharArray();
+                for(var i = 0; i <charArr.length;i++) {
+                    System.out.print(charArr[i]);
+                    if(Character.compare(charArr[i], '}') == 0 && Character.compare(charArr[i+1], ',') != 0) {
+                        System.out.print("\n ");
+                    }
+                    if(Character.compare(charArr[i], '{') == 0) {
+                        if(Character.compare(charArr[i+1], ',') != 0 ) {
+                            if (Character.compare(charArr[i + 1], '}') != 0) {
+                                System.out.print("\n ");
+                            }
+                        }
+                    }
+                    if(Character.compare(charArr[i], ',') == 0) {
+                        System.out.print("\n ");
+                    }
+                }
 
 
 
