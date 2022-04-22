@@ -22,11 +22,10 @@ public class Test {
                 Socket socket = serverSocket.accept();
                 InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
 
-                byte[] bytes = new byte[10000];
+                byte[] bytes = new byte[4096];
                 InputStream is = socket.getInputStream();
                 int readByteCount = is.read(bytes); // blocking
                 String message = new String(bytes, 0, readByteCount, "UTF-8");
-
                 jsonData = new JsonData(isa , message);
                 String responseBody = jsonData.responseBody(message);
                 String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonData.parseJson(message));

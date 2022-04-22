@@ -3,6 +3,7 @@ package com.nhnacademy;
 import java.net.InetSocketAddress;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import org.apache.commons.fileupload.MultipartStream;
 import org.json.simple.JSONObject;
 
 // FIXME 1. POST - 추가한 JSON 데이터 거꾸로 나옴
@@ -62,6 +63,9 @@ public class JsonData {
             } else {
                 jsonObject.put("args", new JSONObject());
             }
+            jsonObject.put("data", parseData(message));
+            jsonObject.put("files", parseFile());
+            jsonObject.put("form", "");
 
         } else if (message.contains("POST ")) {
             String request = message.split("Content-Type: ")[1];
@@ -70,6 +74,9 @@ public class JsonData {
             } else {
                 jsonObject.put("args", new JSONObject());
             }
+            jsonObject.put("data", String.valueOf(parseData(message)));
+            jsonObject.put("files", parseFile());
+            jsonObject.put("form", "");
         }
 
         jsonObject.put("headers", parseHeader(message));
@@ -111,36 +118,16 @@ public class JsonData {
         return args;
     }
 
-    //> POST /post HTTP/1.1
-    //> Host: 127.0.0.1
-    //> User-Agent: curl/7.79.1
-    //> Accept: */*
-    //> Content-Length: 238
-    //> Content-Type: multipart/form-data; boundary=------------------------b8b812dd1e32dc4c
-
-
     public JSONObject parseHeader(String message) {
         JSONObject header = new JSONObject();
 
         String host = message.split("Host:")[1].split("User-Agent")[0].split("\r")[0];
         if (message.contains("GET ")) {
-            //   "headers": {
-            //    "Accept": "*/*",
-            //    "Host": "test-vm.com",
-            //    "User-Agent": "curl/7.64.1"
-            //  },
             header.put("Accept", "*/*");
             header.put("Host", host);
             header.put("User-Agent", "curl/7.64.1");
 
         } else if (message.contains("POST ")) {
-            //  "headers": {
-            //    "Accept": "*/*",
-            //    "Content-Length": "36",
-            //    "Content-Type": "application/json",
-            //    "Host": "test-vm.com",
-            //    "User-Agent": "curl/7.64.1"
-            //  },
             header.put("Accept", "*/*");
             header.put("Host", host);
             header.put("User-Agent", "curl/7.64.1");
@@ -154,5 +141,9 @@ public class JsonData {
         String url = message.split("Host:")[1].split("User-Agent")[0].split("\r")[0];
         url = "http://" + url;
         return url;
+    }
+
+    public String parseFile() {
+        return null;
     }
 }
