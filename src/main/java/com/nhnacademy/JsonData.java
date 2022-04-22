@@ -17,7 +17,7 @@ public class JsonData {
     }
 
     public String body(String message){
-        url = url.replace("\r\n","");
+        String url = message.replace("\r\n","");
 
         String result ="";
         result += "{\n";
@@ -62,14 +62,7 @@ public class JsonData {
         jsonObject.put("url", parseUrl(message));
         String ld = jsonObject.toJSONString();
         System.out.println(ld);
-        return jsonObject.toJSONString();
 
-        jsonObject.put("headers", parseHost(message) + "\\r\\n");
-        // TODO ORIGIN IP로 바꿔야 함
-        jsonObject.put("origin", "127.0.0.1" + "\\r\\n");
-        jsonObject.put("url", parseUrl(message) + "\\r\\n");
-
-        System.out.println(jsonObject.toJSONString());
         return jsonObject.toJSONString();
     }
 

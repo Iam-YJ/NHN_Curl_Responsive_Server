@@ -37,33 +37,31 @@ public class Test {
                 OutputStream os = socket.getOutputStream();
                 bytes = body.getBytes("UTF-8");
                 os.write(bytes);
-                bytes = jsonObject.getBytes("UTF-8");
-                os.write(bytes);
                 os.flush();
                 System.out.println("[데이터 보내기 성공]");
 
                 char[] charArr = jsonObject.toCharArray();
-                for(var i = 0; i <charArr.length;i++) {
+                for (var i = 0; i < charArr.length; i++) {
                     System.out.print(charArr[i]);
-                    if(Character.compare(charArr[i], '}') == 0 && Character.compare(charArr[i+1], ',') != 0) {
+                    if (Character.compare(charArr[i], '}') == 0 &&
+                        Character.compare(charArr[i + 1], ',') != 0) {
                         System.out.print("\n ");
                     }
-                    if(Character.compare(charArr[i], '{') == 0) {
-                        if(Character.compare(charArr[i+1], ',') != 0 ) {
+                    if (Character.compare(charArr[i], '{') == 0) {
+                        if (Character.compare(charArr[i + 1], ',') != 0) {
                             if (Character.compare(charArr[i + 1], '}') != 0) {
                                 System.out.print("\n ");
                             }
                         }
                     }
-                    if(Character.compare(charArr[i], ',') == 0) {
+                    if (Character.compare(charArr[i], ',') == 0) {
                         System.out.print("\n ");
                     }
                 }
 
-
-
-
-                is.close(); os.close(); socket.close();
+                is.close();
+                os.close();
+                socket.close();
             }
         } catch (IOException e) {
             e.printStackTrace();
