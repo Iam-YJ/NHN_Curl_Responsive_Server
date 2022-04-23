@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import org.json.simple.parser.ParseException;
 
 public class Test {
     public static void main(String[] args) {
@@ -62,6 +63,8 @@ public class Test {
                             os.write(bytes);
                             os.flush();
                         }
+                    } catch (ParseException e) {
+                        e.printStackTrace();
                     }
                 }
             }

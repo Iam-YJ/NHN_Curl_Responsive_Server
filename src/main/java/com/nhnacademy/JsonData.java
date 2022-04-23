@@ -5,16 +5,20 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import org.apache.commons.fileupload.MultipartStream;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 // FIXME 1. POST - 추가한 JSON 데이터 거꾸로 나옴
 // FIXME 2. GET - 추가한 데이터 거꾸로 나옴
 public class JsonData {
     private final InetSocketAddress isa;
     private String message;
+    private String body;
 
-    public JsonData(InetSocketAddress isa, String message) {
+    public JsonData(InetSocketAddress isa, String message, String body) {
         this.isa = isa;
         this.message = message.replace("\r\n", "");
+        this.body = body;
     }
 
     public String parseContentTypeFromArgs(String message) {
@@ -56,7 +60,7 @@ public class JsonData {
         return result;
     }
 
-    public JSONObject parseJson(String message) {
+    public JSONObject parseJson(String message) throws ParseException {
         JSONObject jsonObject = new JSONObject();
 
         message = message.replaceAll("\r", "").replaceAll("\n", "");
@@ -165,7 +169,11 @@ public class JsonData {
         return url;
     }
 
-    public String parseFile() {
-        return null;
+    public JSONObject parseFile() throws ParseException {
+        JSONObject uploadData = new JSONObject();
+        String result = body
+            .split("Content-Type: application/octet-stream")[1].replace("\n", "");
+        uploadData.put("upload", result);
+        return uploadData;
     }
 }
