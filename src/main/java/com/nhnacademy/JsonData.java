@@ -166,8 +166,10 @@ public class JsonData {
 
     public JSONObject parseFile() {
         JSONObject uploadData = new JSONObject();
+        System.out.println(body);
         String result = body
-            .split("Content-Type: application/octet-stream")[1].replace("\n", "");
+            .split("Content-Type: application/octet-stream")[1].replace("\n", "")
+            .replace(" ", "");
         uploadData.put("upload", result);
         return uploadData;
     }

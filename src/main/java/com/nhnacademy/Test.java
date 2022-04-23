@@ -12,7 +12,6 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import org.json.simple.parser.ParseException;
 
 public class Test {
     public static void main(String[] args) {
@@ -31,7 +30,6 @@ public class Test {
                     String message = new String(bytes, StandardCharsets.UTF_8).split("\u0000")[0];
 
                     try (BufferedReader bf = new BufferedReader(new InputStreamReader(is))) {
-
                         //
                         //Content-Type: application/json
                         if (message.contains("Content-Type: multipart/form-data")) {
@@ -44,8 +42,6 @@ public class Test {
                                     }
                                     ar.add(line);
                                     count++;
-                                } else {
-                                    break;
                                 }
                                 jsonStr += line + "\n";
                             }
