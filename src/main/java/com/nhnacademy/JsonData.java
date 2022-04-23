@@ -16,15 +16,15 @@ public class JsonData {
     }
 
     public InetSocketAddress getIsa() {
-        return isa;
+        return this.isa;
     }
 
     public String getMessage() {
-        return message;
+        return this.message;
     }
 
     public String getBody() {
-        return body;
+        return this.body;
     }
 
     public static String date() {
