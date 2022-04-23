@@ -5,16 +5,20 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import org.apache.commons.fileupload.MultipartStream;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 // FIXME 1. POST - 추가한 JSON 데이터 거꾸로 나옴
 // FIXME 2. GET - 추가한 데이터 거꾸로 나옴
 public class JsonData {
     private final InetSocketAddress isa;
     private String message;
+    private String body;
 
-    public JsonData(InetSocketAddress isa, String message) {
+    public JsonData(InetSocketAddress isa, String message, String body) {
         this.isa = isa;
         this.message = message.replace("\r\n", "");
+        this.body = body;
     }
     
     public String parseContentTypeFromArgs(String message) {
@@ -24,6 +28,7 @@ public class JsonData {
     public String parseDataFromArgs(String message) {
         return "{" + message.split("\\{")[1];
     }
+
 
     public String date() {
         ZonedDateTime now = ZonedDateTime.now();
@@ -51,7 +56,7 @@ public class JsonData {
         return result;
     }
 
-    public JSONObject parseJson(String message) {
+    public JSONObject parseJson(String message) throws ParseException {
         JSONObject jsonObject = new JSONObject();
 
         message = message.replaceAll("\r", "").replaceAll("\n", "");
@@ -71,17 +76,26 @@ public class JsonData {
             String request = message.split("Content-Type: ")[1];
             if (message.contains("\\{")) {
                 jsonObject.put("args", parseArg(request));
+                jsonObject.put("data", String.valueOf(parseData(message)));
+                jsonObject.put("files", parseFile());
+                jsonObject.put("form", "");
             } else {
                 jsonObject.put("args", new JSONObject());
+                jsonObject.put("data", "");
+                jsonObject.put("files", parseFile());
+                jsonObject.put("form", "");
             }
-            jsonObject.put("data", String.valueOf(parseData(message)));
-            jsonObject.put("files", parseFile());
-            jsonObject.put("form", "");
+
         }
 
         jsonObject.put("headers", parseHeader(message));
         if (message.contains("POST ")) {
-            jsonObject.put("json", parseData(message));
+            if(message.contains("\\{")){
+                jsonObject.put("json", parseData(message));
+            }else{
+                jsonObject.put("json", "");
+            }
+
         }
         jsonObject.put("origin", isa.getHostName());
         jsonObject.put("url", parseUrl(message));
@@ -132,7 +146,18 @@ public class JsonData {
             header.put("Host", host);
             header.put("User-Agent", "curl/7.64.1");
             header.put("Content-Type", parseContentType(message));
-            header.put("Content-Length", size(parseDataFromArgs(message)));
+            if(message.contains("multipart/form-data")){
+                // fixme
+                header.put("Content-Length", "510");
+                header.put("Connection:", "keep-alive");
+                header.put("Server: ", "gunicorn/19.9.0");
+                header.put("Access-Control-Allow-Origin: ", "*");
+                header.put("Access-Control-Allow-Credentials: ", "true");
+
+            }else{
+                header.put("Content-Length", size(parseDataFromArgs(message)));
+            }
+
         }
         return header;
     }
@@ -143,7 +168,11 @@ public class JsonData {
         return url;
     }
 
-    public String parseFile() {
-        return null;
+    public JSONObject parseFile() throws ParseException {
+        JSONObject uploadData = new JSONObject();
+        String result = body
+            .split("Content-Type: application/octet-stream")[1].replace("\n", "");
+        uploadData.put("upload", result);
+        return uploadData;
     }
 }

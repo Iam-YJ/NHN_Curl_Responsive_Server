@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import org.json.simple.parser.ParseException;
 
 public class Test {
     public static void main(String[] args) {
@@ -34,16 +35,18 @@ public class Test {
                         String line = null;
                         List<String> ar = new ArrayList<>();
                         while ((line = bf.readLine()) != null) {
-                            if (line.contains(ar.get(0)) && count > 0) {
-                                break;
+                            if(line.contains("--------------------------")){
+                                if (count > 0 && line.contains(ar.get(0))) {
+                                    break;
+                                }
+                                ar.add(line);
+                                count++;
                             }
-                            ar.add(line);
-                            count++;
                             jsonStr += line + "\n";
                         }
                         System.out.println("while 끝");
+                        jsonData = new JsonData(isa, message, jsonStr);
                         System.out.println(jsonStr);
-                        jsonData = new JsonData(isa, message);
                         String responseBody = jsonData.responseBody(message);
                         String jsonString = mapper.writerWithDefaultPrettyPrinter()
                             .writeValueAsString(jsonData.parseJson(message));
@@ -55,6 +58,8 @@ public class Test {
                             os.write(bytes);
                             os.flush();
                         }
+                    } catch (ParseException e) {
+                        e.printStackTrace();
                     }
                 }
             }
