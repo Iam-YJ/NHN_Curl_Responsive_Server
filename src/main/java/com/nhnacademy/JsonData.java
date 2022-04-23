@@ -22,15 +22,11 @@ public class JsonData {
     }
 
     public String parseContentTypeFromArgs(String message) {
-        return message.split("Content-Type: ")[1].split("\\{")[0];
+        return message.split("Content-Type: ")[1].split("\\{")[0].split(" HTTP")[0];
     }
 
     public String parseDataFromArgs(String message) {
         return message.split("\u0000")[0].split(" \\/")[1].split(" HTTP")[0];
-    }
-
-    public String parseJsonDataFromArgs(String message) {
-        return "{" + message.split("\\{")[1];
     }
 
 
@@ -60,7 +56,7 @@ public class JsonData {
         return result;
     }
 
-    public JSONObject parseJson(String message) throws ParseException {
+    public JSONObject parseJson(String message){
         JSONObject jsonObject = new JSONObject();
 
         message = message.replaceAll("\r", "").replaceAll("\n", "");
@@ -78,15 +74,14 @@ public class JsonData {
             if (message.contains("\\{")) {
                 jsonObject.put("args", parseArg(request));
                 jsonObject.put("data", String.valueOf(parseData(message)));
-                jsonObject.put("files", parseFile());
+                jsonObject.put("files", "");
                 jsonObject.put("form", "");
             } else {
                 jsonObject.put("args", new JSONObject());
                 jsonObject.put("data", "");
-                jsonObject.put("files", "");
+                jsonObject.put("files", parseFile());
                 jsonObject.put("form", "");
             }
-
         }
 
         jsonObject.put("headers", parseHeader(message));
@@ -169,7 +164,7 @@ public class JsonData {
         return url;
     }
 
-    public JSONObject parseFile() throws ParseException {
+    public JSONObject parseFile() {
         JSONObject uploadData = new JSONObject();
         String result = body
             .split("Content-Type: application/octet-stream")[1].replace("\n", "");

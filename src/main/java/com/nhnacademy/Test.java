@@ -24,7 +24,7 @@ public class Test {
                 Socket socket = serverSocket.accept();
                 InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
                 String jsonStr = "";
-                byte[] bytes = new byte[2000];
+                byte[] bytes = new byte[4096];
                 try (InputStream is = socket.getInputStream()) {
                     var readByteCount = is.read(bytes); // blocking
                     var count = 0;
@@ -51,7 +51,7 @@ public class Test {
                             }
                         }
 
-                        jsonData = new JsonData(isa, message);
+                        jsonData = new JsonData(isa, message, jsonStr);
                         String responseBody = jsonData.responseBody(message);
                         String jsonString = mapper.writerWithDefaultPrettyPrinter()
                             .writeValueAsString(jsonData.parseJson(message));
@@ -63,8 +63,6 @@ public class Test {
                             os.write(bytes);
                             os.flush();
                         }
-                    } catch (ParseException e) {
-                        e.printStackTrace();
                     }
                 }
             }
