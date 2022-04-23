@@ -10,28 +10,39 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Test {
     public static void main(String[] args) {
         JsonData jsonData = null;
         ObjectMapper mapper = new ObjectMapper();
-        
+
         try (ServerSocket serverSocket = new ServerSocket(80)){
             while (true) {
                 Socket socket = serverSocket.accept();
                 InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
                 String jsonStr = "";
-                byte[] bytes = new byte[4096];
+                byte[] bytes = new byte[2000];
                 try(InputStream is = socket.getInputStream()) {
                     int readByteCount = is.read(bytes); // blocking
+                    int count = 0;
                     String message = new String(bytes, StandardCharsets.UTF_8);
-                    System.out.println("message : " + message);
+                    message = (message.split("\u0000")[0]);
+                    System.out.println(message);
                     try (BufferedReader bf = new BufferedReader(new InputStreamReader(is))) {
                         String line = null;
+                        List<String> ar = new ArrayList<>();
                         while ((line = bf.readLine()) != null) {
-                            System.out.println(bf.readLine());
-                            jsonStr += line;
+                            if (line.contains(ar.get(0)) && count > 0) {
+                                break;
+                            }
+                            ar.add(line);
+                            count++;
+                            jsonStr += line + "\n";
                         }
+                        System.out.println("while 끝");
+                        System.out.println(jsonStr);
                         jsonData = new JsonData(isa, message);
                         String responseBody = jsonData.responseBody(message);
                         String jsonString = mapper.writerWithDefaultPrettyPrinter()
