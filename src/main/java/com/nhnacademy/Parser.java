@@ -52,7 +52,7 @@ public class Parser {
             String request = message.split("Content-Type: ")[1];
             if (jsonData.getBody().isEmpty()) {
                 jsonObject.put("args", new JSONObject());
-                jsonObject.put("data", parseJsonFromArg(request).toJSONString());
+                jsonObject.put("data", parseJsonFromArg(request).toJSONString().replace("\\",""));
                 jsonObject.put("files", "");
                 jsonObject.put("form", "");
             } else {
@@ -143,7 +143,8 @@ public class Parser {
 
     public String parseUrl() {
         String url = jsonData.getMessage().split("Host:")[1].split("User-Agent")[0].split("\r")[0];
-        return "http://" + url;
+        String method = jsonData.getMessage().split(" HTTP")[0].split(" ")[1];
+        return "http://" + url + method;
     }
 
     public JSONObject parseFile() {
