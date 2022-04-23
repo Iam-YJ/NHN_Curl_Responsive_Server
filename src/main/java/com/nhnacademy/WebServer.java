@@ -51,9 +51,9 @@ public class WebServer {
 
                         jsonData = new JsonData(isa, message, jsonStr.toString());
                         Parser parser = new Parser(jsonData);
-                        String responseBody = parser.responseBody(message);
+                        String responseBody = parser.responseBody();
                         String jsonString = mapper.writerWithDefaultPrettyPrinter()
-                            .writeValueAsString(parser.parseJson(message));
+                            .writeValueAsString(parser.parseJson());
 
                         try (OutputStream os = socket.getOutputStream()) {
                             bytes = responseBody.getBytes(StandardCharsets.UTF_8);

@@ -9,16 +9,16 @@ public class Parser {
         this.jsonData = jsonData;
     }
 
-    public String parseContentTypeFromArgs(String message) {
-        return message.split("Content-Type: ")[1].split("\\{")[0].split(" HTTP")[0];
+    public String parseContentTypeFromArgs() {
+        return jsonData.getMessage().split("Content-Type: ")[1].split("\\{")[0].split(" HTTP")[0];
     }
 
-    public String parseDataFromArgs(String message) {
-        return message.split("\u0000")[0].split(" \\/")[1].split(" HTTP")[0];
+    public String parseDataFromArgs() {
+        return jsonData.getMessage().split("\u0000")[0].split(" \\/")[1].split(" HTTP")[0];
     }
 
-    public String responseBody(String message) {
-        String url = message.replace("\r\n", "");
+    public String responseBody() {
+        String url = jsonData.getMessage().replace("\r\n", "");
         // FIXME: 3. 200 400 300 이것들도 조건문 하기
         // FIXME: 4. FAIL 떴을 때 예외처리로 넘어가서 서버 끄는 식으로 ..
         String result = "";
@@ -34,8 +34,9 @@ public class Parser {
         return result;
     }
 
-    public JSONObject parseJson(String message) {
+    public JSONObject parseJson() {
         JSONObject jsonObject = new JSONObject();
+        String message = jsonData.getMessage();
 
         message = message.replaceAll("\r", "").replaceAll("\n", "");
 
@@ -62,27 +63,23 @@ public class Parser {
             }
         }
 
-        jsonObject.put("headers", parseHeader(message));
+        jsonObject.put("headers", parseHeader());
         if (message.contains("POST ")) {
             if (message.contains("\\{")) {
-                jsonObject.put("json", parseData(message));
+                jsonObject.put("json", parseData());
             } else {
                 jsonObject.put("json", "");
             }
         }
         jsonObject.put("origin", jsonData.getIsa().getHostName());
-        jsonObject.put("url", parseUrl(message));
+        jsonObject.put("url", parseUrl());
 
         return jsonObject;
     }
 
-    public String parseContentType(String message) {
-        return parseContentTypeFromArgs(message);
-    }
-
-    public JSONObject parseData(String message) {
+    public JSONObject parseData() {
         String[] rawData =
-            parseDataFromArgs(message).split("\\{ ")[1].split("\\ }")[0].replace("\"", "")
+            parseDataFromArgs().split("\\{ ")[1].split("\\ }")[0].replace("\"", "")
                 .split(",");
         JSONObject jsonObject = new JSONObject();
 
@@ -117,9 +114,9 @@ public class Parser {
         return args;
     }
 
-    public JSONObject parseHeader(String message) {
+    public JSONObject parseHeader() {
         JSONObject header = new JSONObject();
-
+        String message = jsonData.getMessage();
         String host = message.split("Host:")[1].split("User-Agent")[0].split("\r")[0];
         if (message.contains("GET ")) {
             header.put("Accept", "*/*");
@@ -130,7 +127,7 @@ public class Parser {
             header.put("Accept", "*/*");
             header.put("Host", host);
             header.put("User-Agent", "curl/7.64.1");
-            header.put("Content-Type", parseContentType(message));
+            header.put("Content-Type", parseContentTypeFromArgs());
             if (message.contains("multipart/form-data")) {
                 header.put("Content-Length", JsonData.size(jsonData.getBody()));
                 header.put("Connection:", "keep-alive");
@@ -138,16 +135,15 @@ public class Parser {
                 header.put("Access-Control-Allow-Origin: ", "*");
                 header.put("Access-Control-Allow-Credentials: ", "true");
             } else {
-                header.put("Content-Length", JsonData.size(parseDataFromArgs(message)));
+                header.put("Content-Length", JsonData.size(parseDataFromArgs()));
             }
         }
         return header;
     }
 
-    public String parseUrl(String message) {
-        String url = message.split("Host:")[1].split("User-Agent")[0].split("\r")[0];
-        url = "http://" + url;
-        return url;
+    public String parseUrl() {
+        String url = jsonData.getMessage().split("Host:")[1].split("User-Agent")[0].split("\r")[0];
+        return "http://" + url;
     }
 
     public JSONObject parseFile() {
