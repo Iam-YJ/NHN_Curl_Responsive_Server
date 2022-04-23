@@ -13,7 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Test {
+public class WebServer {
+    private static boolean isFail;
     public static void main(String[] args) {
         JsonData jsonData = null;
         ObjectMapper mapper = new ObjectMapper();
@@ -22,7 +23,7 @@ public class Test {
             while (true) {
                 Socket socket = serverSocket.accept();
                 InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
-                String jsonStr = "";
+                StringBuilder jsonStr = new StringBuilder();
                 byte[] bytes = new byte[4096];
                 try (InputStream is = socket.getInputStream()) {
                     var readByteCount = is.read(bytes); // blocking
@@ -48,7 +49,7 @@ public class Test {
                             }
                         }
 
-                        jsonData = new JsonData(isa, message, jsonStr);
+                        jsonData = new JsonData(isa, message, jsonStr.toString());
                         Parser parser = new Parser(jsonData);
                         String responseBody = parser.responseBody(message);
                         String jsonString = mapper.writerWithDefaultPrettyPrinter()
@@ -62,6 +63,9 @@ public class Test {
                             os.flush();
                         }
                     }
+                }
+                if(isFail){
+                    break;
                 }
             }
         } catch (IOException e) {

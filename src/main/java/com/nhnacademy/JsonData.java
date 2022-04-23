@@ -5,9 +5,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class JsonData {
-    private InetSocketAddress isa;
-    private String message;
-    private String body;
+    private final InetSocketAddress isa;
+    private final String message;
+    private final String body;
 
     public JsonData(InetSocketAddress isa, String message, String body) {
         this.isa = isa;
