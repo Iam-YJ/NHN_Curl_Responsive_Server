@@ -19,8 +19,6 @@ public class Parser {
 
     public String responseBody() {
         String url = jsonData.getMessage().replace("\r\n", "");
-        // FIXME: 3. 200 400 300 이것들도 조건문 하기
-        // FIXME: 4. FAIL 떴을 때 예외처리로 넘어가서 서버 끄는 식으로 ..
         String result = "";
         result += "HTTP/1.1 200 OK\n";
         result += JsonData.date() + "\n";
@@ -37,7 +35,6 @@ public class Parser {
     public JSONObject parseJson() {
         JSONObject jsonObject = new JSONObject();
         String message = jsonData.getMessage();
-
         message = message.replaceAll("\r", "").replaceAll("\n", "");
 
         if (message.contains("GET ")) {
