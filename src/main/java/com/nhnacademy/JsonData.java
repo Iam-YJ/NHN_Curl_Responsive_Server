@@ -16,14 +16,19 @@ public class JsonData {
         this.isa = isa;
         this.message = message.replace("\r\n", "");
     }
-    
+
     public String parseContentTypeFromArgs(String message) {
         return message.split("Content-Type: ")[1].split("\\{")[0];
     }
 
     public String parseDataFromArgs(String message) {
+        return message.split("\u0000")[0].split(" \\/")[1].split(" HTTP")[0];
+    }
+
+    public String parseJsonDataFromArgs(String message) {
         return "{" + message.split("\\{")[1];
     }
+
 
     public String date() {
         ZonedDateTime now = ZonedDateTime.now();
@@ -63,25 +68,31 @@ public class JsonData {
             } else {
                 jsonObject.put("args", new JSONObject());
             }
-            jsonObject.put("data", parseData(message));
-            jsonObject.put("files", parseFile());
-            jsonObject.put("form", "");
 
         } else if (message.contains("POST ")) {
             String request = message.split("Content-Type: ")[1];
             if (message.contains("\\{")) {
                 jsonObject.put("args", parseArg(request));
+                jsonObject.put("data", String.valueOf(parseData(message)));
+                jsonObject.put("files", parseFile());
+                jsonObject.put("form", "");
             } else {
                 jsonObject.put("args", new JSONObject());
+                jsonObject.put("data", "");
+                jsonObject.put("files", "");
+                jsonObject.put("form", "");
             }
-            jsonObject.put("data", String.valueOf(parseData(message)));
-            jsonObject.put("files", parseFile());
-            jsonObject.put("form", "");
+
         }
 
         jsonObject.put("headers", parseHeader(message));
         if (message.contains("POST ")) {
-            jsonObject.put("json", parseData(message));
+            if (message.contains("\\{")) {
+                jsonObject.put("json", parseData(message));
+            } else {
+                jsonObject.put("json", "");
+            }
+
         }
         jsonObject.put("origin", isa.getHostName());
         jsonObject.put("url", parseUrl(message));
@@ -105,7 +116,7 @@ public class JsonData {
         }
         return jsonObject;
     }
-    
+
     public JSONObject parseArg(String method) {
         JSONObject args = new JSONObject();
         String[] url = method.split("get\\?")[1].split(" HTTP")[0].split("&");
@@ -132,7 +143,18 @@ public class JsonData {
             header.put("Host", host);
             header.put("User-Agent", "curl/7.64.1");
             header.put("Content-Type", parseContentType(message));
-            header.put("Content-Length", size(parseDataFromArgs(message)));
+            if (message.contains("multipart/form-data")) {
+                // fixme
+                header.put("Content-Length", "510");
+                header.put("Connection:", "keep-alive");
+                header.put("Server: ", "gunicorn/19.9.0");
+                header.put("Access-Control-Allow-Origin: ", "*");
+                header.put("Access-Control-Allow-Credentials: ", "true");
+
+            } else {
+                header.put("Content-Length", size(parseDataFromArgs(message)));
+            }
+
         }
         return header;
     }

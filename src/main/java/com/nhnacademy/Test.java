@@ -18,31 +18,38 @@ public class Test {
         JsonData jsonData = null;
         ObjectMapper mapper = new ObjectMapper();
 
-        try (ServerSocket serverSocket = new ServerSocket(80)){
+        try (ServerSocket serverSocket = new ServerSocket(80)) {
             while (true) {
                 Socket socket = serverSocket.accept();
                 InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
                 String jsonStr = "";
                 byte[] bytes = new byte[2000];
-                try(InputStream is = socket.getInputStream()) {
-                    int readByteCount = is.read(bytes); // blocking
-                    int count = 0;
-                    String message = new String(bytes, StandardCharsets.UTF_8);
-                    message = (message.split("\u0000")[0]);
-                    System.out.println(message);
+                try (InputStream is = socket.getInputStream()) {
+                    var readByteCount = is.read(bytes); // blocking
+                    var count = 0;
+                    String message = new String(bytes, StandardCharsets.UTF_8).split("\u0000")[0];
+
                     try (BufferedReader bf = new BufferedReader(new InputStreamReader(is))) {
-                        String line = null;
-                        List<String> ar = new ArrayList<>();
-                        while ((line = bf.readLine()) != null) {
-                            if (line.contains(ar.get(0)) && count > 0) {
-                                break;
+
+                        //
+                        //Content-Type: application/json
+                        if (message.contains("Content-Type: multipart/form-data")) {
+                            String line = null;
+                            List<String> ar = new ArrayList<>();
+                            while ((line = bf.readLine()) != null) {
+                                if (line.contains("--------------------------")) {
+                                    if (count > 0 && line.contains(ar.get(0))) {
+                                        break;
+                                    }
+                                    ar.add(line);
+                                    count++;
+                                } else {
+                                    break;
+                                }
+                                jsonStr += line + "\n";
                             }
-                            ar.add(line);
-                            count++;
-                            jsonStr += line + "\n";
                         }
-                        System.out.println("while 끝");
-                        System.out.println(jsonStr);
+
                         jsonData = new JsonData(isa, message);
                         String responseBody = jsonData.responseBody(message);
                         String jsonString = mapper.writerWithDefaultPrettyPrinter()
