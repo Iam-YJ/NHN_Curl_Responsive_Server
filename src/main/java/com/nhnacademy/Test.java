@@ -30,8 +30,6 @@ public class Test {
                     String message = new String(bytes, StandardCharsets.UTF_8).split("\u0000")[0];
 
                     try (BufferedReader bf = new BufferedReader(new InputStreamReader(is))) {
-                        //
-                        //Content-Type: application/json
                         if (message.contains("Content-Type: multipart/form-data")) {
                             String line = null;
                             List<String> ar = new ArrayList<>();
