@@ -37,18 +37,22 @@ public class Test {
                                 if (line.contains("--------------------------")) {
                                     if (count > 0 && line.contains(ar.get(0))) {
                                         break;
+                                    } else {
+                                        ar.add(line);
+                                        count++;
+                                        jsonStr.append(line).append("\n");
                                     }
-                                    ar.add(line);
-                                    count++;
+                                } else {
+                                    jsonStr.append(line).append("\n");
                                 }
-                                jsonStr += line + "\n";
                             }
                         }
 
                         jsonData = new JsonData(isa, message, jsonStr);
-                        String responseBody = jsonData.responseBody(message);
+                        Parser parser = new Parser(jsonData);
+                        String responseBody = parser.responseBody(message);
                         String jsonString = mapper.writerWithDefaultPrettyPrinter()
-                            .writeValueAsString(jsonData.parseJson(message));
+                            .writeValueAsString(parser.parseJson(message));
 
                         try (OutputStream os = socket.getOutputStream()) {
                             bytes = responseBody.getBytes(StandardCharsets.UTF_8);
