@@ -20,16 +20,12 @@ public class WebServer {
     private static int count = 0;
     private static List<String> ar;
 
-    public static void setExitLoop(boolean exitLoop) {
-        WebServer.exitLoop = exitLoop;
-    }
-
     public static void main(String[] args) {
         JsonData jsonData = null;
         ObjectMapper mapper = new ObjectMapper();
         jsonStr = new StringBuilder();
         try (ServerSocket serverSocket = new ServerSocket(80)) {
-            while (true) {
+            while (!isFail) {
                 Socket socket = serverSocket.accept();
                 InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
                 byte[] bytes = new byte[4096];
@@ -37,23 +33,13 @@ public class WebServer {
                     var readByteCount = is.read(bytes); // blocking
                     String message = new String(bytes, StandardCharsets.UTF_8).split("\u0000")[0];
                     try (BufferedReader bf = new BufferedReader(new InputStreamReader(is))) {
-                        if (message.contains("Content-Type: multipart/form-data")) {
-                            String line = null;
-                            ar = new ArrayList<>();
-                            while (((line = bf.readLine()) != null)) {
-                                bodyDataClassification(line);
-                                if (exitLoop) {
-                                    break;
-                                }
-                            }
-                        }
+                        checkType(message, bf);
 
                         jsonData = new JsonData(isa, message, jsonStr.toString());
                         Parser parser = new Parser(jsonData);
                         String responseBody = parser.responseBody();
                         String jsonString = mapper.writerWithDefaultPrettyPrinter()
                             .writeValueAsString(parser.parseJson());
-
                         try (OutputStream os = socket.getOutputStream()) {
                             bytes = responseBody.getBytes(StandardCharsets.UTF_8);
                             os.write(bytes);
@@ -63,27 +49,42 @@ public class WebServer {
                         }
                     }
                 }
-                if(isFail){
-                    break;
-                }
             }
         } catch (IOException e) {
             System.out.println(e);
         }
     }
 
-    public static void bodyDataClassification(String line) {
-        if (line.contains("--------------------------")) {
-            if (count > 0 && line.contains(ar.get(0))) {
-                setExitLoop(true);
-            } else {
-                ar.add(line);
-                count++;
-                jsonStr.append(line).append("\n");
-            }
-        } else {
-            jsonStr.append(line).append("\n");
+    private static void checkType(String message, BufferedReader bf) throws IOException {
+        if (message.contains("Content-Type: multipart/form-data")) {
+            String line = null;
+            ar = new ArrayList<>();
+            loopBuffer(bf);
         }
     }
 
+    private static void loopBuffer(BufferedReader bf) throws IOException {
+        String line;
+        while (!exitLoop &&((line = bf.readLine()) != null)) {
+            exitLoop = bodyDataClassification(line);
+        }
+    }
+
+    private static boolean bodyDataClassification(String line) {
+        if (line.contains("--------------------------")) {
+            return subClassification(line);
+        }
+        jsonStr.append(line).append("\n");
+        return false;
+    }
+
+    private static boolean subClassification(String line) {
+        if (count > 0 && line.contains(ar.get(0))) {
+            return true;
+        }
+        ar.add(line);
+        count++;
+        jsonStr.append(line).append("\n");
+        return false;
+    }
 }
