@@ -32,26 +32,33 @@ public class WebServer {
                 try (InputStream is = socket.getInputStream()) {
                     var readByteCount = is.read(bytes); // blocking
                     String message = new String(bytes, StandardCharsets.UTF_8).split("\u0000")[0];
-                    try (BufferedReader bf = new BufferedReader(new InputStreamReader(is))) {
-                        checkType(message, bf);
-
-                        jsonData = new JsonData(isa, message, jsonStr.toString());
-                        Parser parser = new Parser(jsonData);
-                        String responseBody = parser.responseBody();
-                        String jsonString = mapper.writerWithDefaultPrettyPrinter()
-                            .writeValueAsString(parser.parseJson());
-                        try (OutputStream os = socket.getOutputStream()) {
-                            bytes = responseBody.getBytes(StandardCharsets.UTF_8);
-                            os.write(bytes);
-                            bytes = jsonString.getBytes(StandardCharsets.UTF_8);
-                            os.write(bytes);
-                            os.flush();
-                        }
-                    }
+                    readRequest(mapper, socket, isa, is, message);
                 }
             }
         } catch (IOException e) {
             System.out.println(e);
+        }
+    }
+
+    private static void readRequest(ObjectMapper mapper, Socket socket, InetSocketAddress isa,
+                                  InputStream is, String message) throws IOException {
+        JsonData jsonData;
+        byte[] bytes;
+        try (BufferedReader bf = new BufferedReader(new InputStreamReader(is))) {
+            checkType(message, bf);
+
+            jsonData = new JsonData(isa, message, jsonStr.toString());
+            Parser parser = new Parser(jsonData);
+            String responseBody = parser.responseBody();
+            String jsonString = mapper.writerWithDefaultPrettyPrinter()
+                .writeValueAsString(parser.parseJson());
+            try (OutputStream os = socket.getOutputStream()) {
+                bytes = responseBody.getBytes(StandardCharsets.UTF_8);
+                os.write(bytes);
+                bytes = jsonString.getBytes(StandardCharsets.UTF_8);
+                os.write(bytes);
+                os.flush();
+            }
         }
     }
 
